@@ -9,6 +9,10 @@ import os
 import json
 from seleniumbase import Driver
 import configparser
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -17,25 +21,27 @@ email = config['JobDetails']['email']
 Password = config['JobDetails']['Password']
 
 
+first_name = config['JobDetails']['first_name']
+last_name = config['JobDetails']['last_name']
+phone_no = config['JobDetails']['phone_no']
+job_zipcode = config['JobDetails']['job_zipcode']
+
+
 def wait(driver):
-    print('Start: Wait for 2 second')
+    # print('Start: Wait for 2 second')
     driver.implicitly_wait(3)
     sleep(2)
-    print('End: Wait for 2 second')
+    # print('End: Wait for 2 second')
 
 def setup_driver():
-    # print('Start: Initializing chrome Driver')
-    # options = uc.ChromeOptions()
-    # driver = uc.Chrome(version_main=128, options=options)
-    # print('End: Initializing Chrome Driver')
     driver = Driver(uc=True, headless=False)
     return driver
 
 def login_to_indeed(driver):
-    print('start: Hit login page URL')
+    print('\n\nstart: Hit login page URL\n')
     driver.get('https://secure.indeed.com/auth?hl=en_PK&co=PK&continue=https%3A%2F%2Fpk.indeed.com%2F%3Fr%3Dus&tmpl=desktop&from=gnav-util-homepage&jsContinue=https%3A%2F%2Fonboarding.indeed.com%2Fonboarding%3Fhl%3Den_PK%26co%3DPK%26from%3Dgnav-homepage&empContinue=https%3A%2F%2Faccount.indeed.com%2Fmyaccess')
 
-    sleep(10)
+    sleep(5)
     
     driver.find_element(By.ID,'login-google-button').click()
     
@@ -69,7 +75,7 @@ def login_to_indeed(driver):
     
     
     driver.find_element(By.XPATH,'//span[text()="Next"]//parent::button').click()
-    sleep(23.9)
+    sleep(8)
     
     try: 
         driver.find_element(By.XPATH,'//span[text()="Continue"]//parent::button').click()
@@ -78,26 +84,7 @@ def login_to_indeed(driver):
         pass   
     
     driver.switch_to.window(main_window)
-    # print('start: Wait for 120 second for manual login')
-    # sleep(120)
-    # print("End: Wait for 120 second for manual login")
-    # print('End: Hit login page URL')
-    
-# def log_job_application(job_url, status):
-    # file_path = 'track.xlsx'
-    # # If file doesn't exist, create it
-    # if not os.path.exists(file_path):
-    #     wb = Workbook()
-    #     ws = wb.active
-    #     ws.title = 'Job Applications'
-    #     ws.append(['Job URL', 'Status', 'Timestamp'])  # Adding headers
-    # else:
-    #     wb = load_workbook(file_path)
-    #     ws = wb.active
-
-    # # Append the job record
-    # ws.append([job_url, status, datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
-    # wb.save(file_path)
+    print("Login Successful!\n")
 
 
 def upload_resume(driver, file_path: str):
@@ -132,78 +119,156 @@ def upload_resume(driver, file_path: str):
 
 
 def apply_for_job(driver, job_url, job_info, resume_pdf_path: str):
+    Submit= False
 
-    print('Apply to this job URL: ', job_url)
+    print('\nApply to this job URL: ', job_url)
     driver.get(job_url)
+
     try:
-        print('Start: Click on Apply Button')
-        apply_btn = driver.find_element('xpath', "//span[text()='Apply now']")
-        apply_btn.click()
-        wait(driver)
-        print('End: Click on Apply Button')
-    except Exception as e:
-        print(f"Error applying: {e}")
+        driver.find_element('xpath', "//span[text()='Applied']")
+        applied = True
+    except: 
+        applied = False
 
-    while True:
-        wait(driver)
-        url = driver.current_url
-        parsed_url = urlparse(url)
-        # print('URL after clicking apply button > ',  parsed_url)
         
-        if parsed_url.netloc == 'smartapply.indeed.com':
-            print('continue')
-        else:
-            print('Break: The Apply button redirected to company page.')
-            break
-
+    if applied==False:
         try:
-            continue_buttons = driver.find_elements('xpath', "//button[span[text()='Continue']]")
+            print('\nStart: Click on Apply Button\n')
+            apply_btn = driver.find_element('xpath', "//span[text()='Apply now']")
+            apply_btn.click()
+            wait(driver)
+            print('\nEnd: Click on Apply Button\n')
+        except Exception as e:
+            print(f"Error applying: {e}")
+
+        sleep(5.1)
+        try:
+            print('\nTry to add first name\n')
+            f_name_input = driver.find_element(By.XPATH,'//input[@id="input-firstName"]')
+            f_name_input.send_keys(Keys.CONTROL + "a")  
+            f_name_input.send_keys(Keys.DELETE)  
+            f_name_input.send_keys(str(first_name))
+            print('\nFirst name added\n')
+            
+            print('\nTry to add last name\n')
+            l_name_input = driver.find_element(By.XPATH,'//input[@id="input-lastName"]')
+            l_name_input.send_keys(Keys.CONTROL + "a") 
+            l_name_input.send_keys(Keys.DELETE)  
+            l_name_input.send_keys(str(last_name))
+            print('\nlast name added\n')
+
+            print('\nTry to add city name\n')
+            city_name_input = driver.find_element(By.XPATH,'//input[@id="input-location.city"]')
+            city_name_input.send_keys(Keys.CONTROL + "a") 
+            city_name_input.send_keys(Keys.DELETE)  
+            city_name_input.send_keys(str(job_zipcode))  
+            print('\ncity name added\n')  
+            
+            print('\nTry to add phone number\n')
+            phone_no_input = driver.find_element(By.XPATH,'//input[@id="input-phoneNumber"]')
+            phone_no_input.send_keys(Keys.CONTROL + "a")  
+            phone_no_input.send_keys(Keys.DELETE)  
+            phone_no_input.send_keys(str(phone_no))  
+            print('\nphone number added\n')  
+            
+            print('\nTry to click on continue button\n')
+            continue_buttons = driver.find_elements(By.XPATH, '//span[text()="Continue"]//parent::button')
             for btn in continue_buttons:
-                btn.click()
-                wait(driver)
-            print('Clicked on the continuer button')
-        except:
-            print('Failed to click continue button.')
+                try:
+                    # Scroll the button into view
+                    driver.execute_script("arguments[0].scrollIntoView(true);", btn)
+                    
+                    # Wait until the button is clickable (to ensure it is interactable)
+                    WebDriverWait(driver, 5).until(EC.element_to_be_clickable(btn))
+                    
+                    # Click the button
+                    btn.click()
+                    print('Clicked on the continue button.')
+                except Exception as e:
+                    # print(f'Failed to click continue button: {e}')
+                    pass
+        except Exception as e:
+            print("Error in add personal details page (like: first name, last name, phone number): \n", e)
+        sleep(5)
 
-
+        print('\nTry to add resume\n')
         upload_resume(driver, file_path=resume_pdf_path)
 
         sleep(5)
+
+        print('\nTry to click on continue button\n')
+        continue_buttons = driver.find_elements(By.XPATH, '//span[text()="Continue"]//parent::button')
+        for btn in continue_buttons:
+            try:
+                # Scroll the button into view
+                driver.execute_script("arguments[0].scrollIntoView(true);", btn)
+                
+                # Wait until the button is clickable (to ensure it is interactable)
+                WebDriverWait(driver, 5).until(EC.element_to_be_clickable(btn))
+                
+                # Click the button
+                btn.click()
+                print('Clicked on the continue button.')
+            except Exception as e:
+                # print(f'Failed to click continue button: {e}')
+                pass
+        sleep(5)
+        
+        print('\nTry to click on continue button\n')
+        continue_buttons = driver.find_elements(By.XPATH, '//span[text()="Continue"]//parent::button')
+        for btn in continue_buttons:
+            try:
+                # Scroll the button into view
+                driver.execute_script("arguments[0].scrollIntoView(true);", btn)
+                
+                # Wait until the button is clickable (to ensure it is interactable)
+                WebDriverWait(driver, 5).until(EC.element_to_be_clickable(btn))
+                
+                # Click the button
+                btn.click()
+                print('Clicked on the continue button.')
+            except Exception as e:
+                # print(f'Failed to click continue button: {e}')
+                pass
+        sleep(5)
+
+
         try:
-            submit_application = driver.find_element('xpath', "//button[span[text()='Submit your application']]")
+            print("Try to click on Submit your application button")
+            submit_application = driver.find_element(By.XPATH, "//button[span[text()='Submit your application']]")
+            
+            # Scroll the button into view
+            driver.execute_script("arguments[0].scrollIntoView(true);", submit_application)
+            
+            # Wait until the button is clickable (to ensure it is interactable)
+            WebDriverWait(driver, 5).until(EC.element_to_be_clickable(submit_application))
+            
             submit_application.click()
             print('Submit Application Successfully')
-            
-            job_title, job_type, job_link  = job_info[0], job_info[1], job_info[2]
-            job_log =  [job_title] + [job_type] + ['Success - Application Submitted'] + [job_link]
-            track_json = "track.json"
-            update_job_json(file_path=track_json, job_data=job_log)
+            Submit= True
+            sleep(5)
+        except Exception as e:
+            print('Error while clicking Submit your application button:',e)
 
-            # log_job_application(job_url, 'Success - Application Submitted')
-            break
-        except:
-            print('Failed to submit the application.')
+    else: 
+        print("\n\n Application already Submitted")
+        job_title, job_type, job_link  = job_info[0], job_info[1], job_url
+        job_log =  [job_title] + [job_type] + ['Failed - Application already Submitted'] + [job_link]
+        track_json = "track.json"
+        update_job_json(file_path=track_json, job_data=job_log)
+        Submit= "Any"
+
+
+    if Submit== True:
+        job_title, job_type, job_link  = job_info[0], job_info[1], job_url
+        job_log =  [job_title] + [job_type] + ['Success - Application Submitted'] + [job_link]
+        track_json = "track.json"
+        update_job_json(file_path=track_json, job_data=job_log)
+    if Submit== False:
+        job_title, job_type, job_link  = job_info[0], job_info[1], job_url
+        job_log =  [job_title] + [job_type] + ['Failed - Application not Submitted'] + [job_link]
+        track_json = "track.json"
+        update_job_json(file_path=track_json, job_data=job_log)
     # print('Finished Application Processing on this URL: ', job_url, '\n\n')
 
 
-
-    
-
-# csv_file = 'IndeedData.csv'
-# if os.path.exists(csv_file):
-#     print("CSV File exists.")
-# else:
-#     print("CSV File does not exist.")
-
-# import pandas as pd
-# df = pd.read_csv('IndeedData.csv')
-# job_url_list: list = df['href'].to_list()
-# len(job_url_list)
-
-# print('Setting up Driver')
-# driver = setup_driver()
-# login_to_indeed(driver)  # Logging into Indeed
-        
-# for job_url in job_url_list:
-#     apply_for_job(driver, job_url)
-    

@@ -1,6 +1,6 @@
 from seleniumbase import Driver
 from HandyWrappers import HandyWrappers
-import time
+import json
 import os
 import csv
 from selenium.webdriver.common.by import By
@@ -9,21 +9,15 @@ from selenium.webdriver.common.by import By
 class IndeedScrapper:
     
     def scrapper(self, job_title: str, job_location: str, total_page: int):
-        # Job_Title = input('Enter Job Title: ')
-        # Job_Location = input('Enter Job Location or Zipcode: ')
-        # total_pages = input('Enter Total Pages: ')
-
-        # Job_Title = "Data Scientist"
-        # Job_Location = "10007"
-        # total_pages = 1
-        print('Start: Scrapping Process Begin')
+        
+        print('Start: Job data scrapping Process Begin')
         Job_Title = job_title
         Job_Location = str(job_location)
-        total_pages = int(1)
+        total_pages = int(total_page)
 
         Job_Title_for_link = Job_Title.replace(" ", "+")
         Job_Location_for_link = Job_Location.replace(" ", "+")
-        base_url = f'https://www.indeed.com/jobs?q={Job_Title_for_link}&l={Job_Location_for_link}&start='
+        base_url = f'https://pk.indeed.com/jobs?q={Job_Title_for_link}&l={Job_Location_for_link}&start='
 
         csv_file = 'IndeedData.csv'
         fieldnames = ['Job Title', 'Location', 'Company Name', 'Pay', 'Job Type', 'Description', 'Location or Zipcode', 'href']
@@ -47,7 +41,7 @@ class IndeedScrapper:
             
             for page in range(int(total_pages)):           
                 page_url = f"{base_url}{page*10}"
-                print(page_url)
+                # print(page_url)
                 driver = Driver(uc=True, headless=False)
                 helpers = HandyWrappers(driver)
                 driver.get(page_url)
@@ -56,19 +50,33 @@ class IndeedScrapper:
                 
 
                 if not helpers.isElementPresent('//h1[text()= " did not match any jobs."]', 'xpath'):
-                    job_urls = driver.find_elements(By.CSS_SELECTOR, 'tr > td > div >h2 > a')
+                    job_urls = driver.find_elements(By.XPATH, '//span[text()="Easily apply"]//parent::span//parent::div//parent::div//parent::div//child::a')
+                    # job_urls = driver.find_elements(By.CSS_SELECTOR, 'tr > td > div >h2 > a')
+                    job_title_elements = driver.find_elements(By.XPATH, '//span[text()="Easily apply"]//parent::span//parent::div//parent::div//parent::div//child::a//child::span')
                     hrefs = []
+                    jobs_titles = []
                     for element in job_urls:
-                        try:
-                            href = element.get_attribute('href')
-                            hrefs.append(href)
-                        except Exception as e:
-                            print(f"Error retrieving href: {e}")
+                        if element.text !="View similar jobs with this employer":
+                            try:
+                                href = element.get_attribute('href')
+                                # print(href)
+                                if '/rc/clk?jk=' in href:
+                                    hrefs.append(href)
+                            except Exception as e:
+                                print(f"Error retrieving href: {e}")
                     
+                    for element in job_title_elements:
+                        try:
+                            jobs_title = element.text
+                            # print(jobs_title)
+                            jobs_titles.append(jobs_title)
+                        except Exception as e:
+                            print(f"Error retrieving job title: {e}")
+                        
 
                     # Get jobs list on the current page
-                    jobs_ = helpers.GetElementlistofattribute(Locator='//div//h2[contains(@class, "jobTitle ")]//a', LocatorType='xpath', attribute='aria-label')
-                    list_of_jobs = [job.replace("full details of ", "") for job in jobs_]
+                    # jobs_ = helpers.GetElementlistofattribute(Locator='//span[text()="Easily apply"]//parent::span//parent::div//parent::div//parent::div//child::a', LocatorType='xpath', attribute='aria-label')
+                    list_of_jobs = [job.replace("full details of ", "") for job in jobs_titles]
                     # print('This is len of list_of_jobs: ', len(list_of_jobs))
                     for job, href in zip(list_of_jobs,hrefs):
                         
@@ -114,8 +122,7 @@ class IndeedScrapper:
                             description = 'N/A'
 
                         # print('This is job title Before Save: ', job)
-                        
-                        writer.writerow({
+                        data = {
                             'Job Title': job, 
                             'Location': Job_Location, 
                             'Company Name': company_name, 
@@ -124,7 +131,9 @@ class IndeedScrapper:
                             'Description': description,
                             'Location or Zipcode': Job_Location,
                             'href': href 
-                        })
+                        }
+                        print(json.dumps(data, indent=4))
+                        writer.writerow(data)
 
                         existing_jobs.add((job, company_name))
 
@@ -138,9 +147,3 @@ class IndeedScrapper:
                 print('End: Scrapping Process End', "\n\n")
 
 
-# Job_Title = input('Enter Job Title: ')
-# Job_Location = input('Enter Job Location: ')
-# total_pages = input('Enter Total Pages: ')
-
-# runtest = IndeedScrapper()
-# runtest.scrapper(Job_Title, Job_Location, total_pages)

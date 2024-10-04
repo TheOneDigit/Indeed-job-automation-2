@@ -29,36 +29,42 @@ if job_title and job_zipcode and job_pages and resume_pdf:
     
     # Set up driver and perform operations
     driver = setup_driver()
-    login_to_indeed(driver)  # Logging into Indeed
+    login_to_indeed(driver)  
 
-    for single_row in job_data:
+    for i,single_row in enumerate(job_data):
+        if i == 8 or i == 18 or i == 28 or i == 38 or i == 48 or i == 58:
+            driver.close()
+            driver.quit()
+            driver = setup_driver()
+            login_to_indeed(driver)  
+
         job_url = single_row[-1]
         rest_of = single_row[:-1]
-        print("Starting the application process...")
+        print("\n\nStarting the application process...")
         apply_for_job(driver, job_url, rest_of, resume_pdf)
-        print("Job application process completed.", '\n\n')
+        print("\nJob application process completed.", '\n\n')
         
     
     driver.close()
     driver.quit()
 else:
-    print('There is a missing input parameter')
+    print('\nThere is a missing input parameter')
 
 
-df = pd.read_csv('IndeedData.csv')
-df_list = df.values.tolist()
-job_data = [[i[0], i[4], i[-1]] for i in df_list]
+# df = pd.read_csv('IndeedData.csv')
+# df_list = df.values.tolist()
+# job_data = [[i[0], i[4], i[-1]] for i in df_list]
 
-# Set up driver and perform operations
-driver = setup_driver()
-login_to_indeed(driver)  # Logging into Indeed
+# # Set up driver and perform operations
+# driver = setup_driver()
+# login_to_indeed(driver)  # Logging into Indeed
 
-for single_row in job_data:
-    job_url = single_row[-1]
-    rest_of = single_row[:-1]
-    print("Starting the application process...")
-    apply_for_job(driver, job_url, rest_of, resume_pdf)
-    print("Job application process completed.", '\n\n')
+# for single_row in job_data:
+#     job_url = single_row[-1]
+#     rest_of = single_row[:-1]
+#     print("Starting the application process...")
+#     apply_for_job(driver, job_url, rest_of, resume_pdf)
+#     print("Job application  process completed.", '\n\n')
     
-driver.close()
-driver.quit()
+# driver.close()
+# driver.quit()
