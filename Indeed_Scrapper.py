@@ -20,7 +20,7 @@ class IndeedScrapper:
         # Format the job title and location to fit Indeed's URL structure
         Job_Title_for_link = Job_Title.replace(" ", "+")
         Job_Location_for_link = Job_Location.replace(" ", "+")
-        base_url = f'https://pk.indeed.com/jobs?q={Job_Title_for_link}&l={Job_Location_for_link}&start='
+        base_url = f'https://indeed.com/jobs?q={Job_Title_for_link}&l={Job_Location_for_link}&start='
 
         # Define CSV file name and the fieldnames for the job data
         csv_file = 'IndeedData.csv'
