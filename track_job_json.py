@@ -17,7 +17,3 @@ def update_job_json(file_path, job_data):
     # Write the updated data back to the file
     with open(file_path, 'w') as file:
         json.dump(data, file, indent=4)
-
-# file_path = 'track.json'
-# job_data = ["Python Developer", "Full-time", "Pending", "https://company.com/job/software-engineer"]
-# update_job_json(file_path, job_data)

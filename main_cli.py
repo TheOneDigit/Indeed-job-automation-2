@@ -12,22 +12,17 @@ def main():
     resume_pdf = input('Please Input Resume Full Path')
 
     if job_title and job_zipcode and job_pages and resume_pdf:
+        # to scrape job profile details like JD, company name, job title etc
         runtest = IndeedScrapper()
         runtest.scrapper(job_title, job_zipcode, job_pages)
 
-        # csv_file = 'IndeedData.csv'
-        # if os.path.exists(csv_file):
-        #     print("CSV File exists.")
-        # else:
-        #     print("CSV File does not exist.")
-        #     return
-
+        # store those details in CSV file
         df = pd.read_csv('IndeedData.csv')
         df_list = df.values.tolist()
         job_data = [[i[0], i[4], i[-1]] for i in df_list]
         
 
-        # Set up driver and perform operations
+        # Set up driver and perform applying operations
         print('Setting up Driver')
         print('Wait for one minute')
         driver = setup_driver()

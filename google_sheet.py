@@ -5,8 +5,6 @@ from dotenv import load_dotenv
 import json
 load_dotenv()
 
-# google_sheet_auth = json.loads(os.getenv('GOOGLE_SHEET_AUTH'))
-# print(google_sheet_auth)
 def insert_data_in_gsheet(data_list):
   
   google_sheet_auth = json.loads(os.getenv('GOOGLE_SHEET_AUTH'))
@@ -21,6 +19,3 @@ def insert_data_in_gsheet(data_list):
 
   return f"https://docs.google.com/spreadsheets/d/{sheet_id}"
 
-
-# dummy_data =[ ["Software Engineer", "Applied", "Full-time", "https://example.com/job1"] ]
-# insert_data_in_gsheet(dummy_data)
